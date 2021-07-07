@@ -10,4 +10,4 @@ For now, here's a list of some quick posts:
 
 ### ES6
 
-1. [iteratify]()
+1. [iteratify](https://github.com/didof/myPosts/blob/main/iteratify/Iteratify.md)
