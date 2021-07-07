@@ -1,13 +1,15 @@
 # Iteratify
 
-## Making it Iterable
+## Premise
 
-Tra le nuove features apportare dal ES6, troviamo l'aggiunta del tipo primitivo Symbol e la definizione del generator.
-In questo post ci avvaliamo dell'utilizzo di entrambi per rendere iterabile un oggetto. Seppure l'utilità di questa funzionalità sia discutibile (facilmente sostituibile mediante l'uso di `Object.entries` o simili) ci consentirà di focalizzare l'attenzione sull'argomento.
+Among the new features brought by the ES6, we find the addition of the primitive type Symbol and the definition of the iterator.
+In this post, we use both to make an **object iterable**. While the usefulness of this functionality is questionable (easily replaceable by the use of `Object.entries` or similar) it will allow us to **focus attention** on the subject.
 
-## Obiettivo
+## Impl
 
-La funzione `iteratify` riceve un oggetto come parametro e ne restituisce una copia iterabile.
+### What
+
+The `iteratify` function takes an object as a parameter and returns an iterable copy of it.
 
 ```js
 const object = {
@@ -23,13 +25,15 @@ for (let(key, val) of itObject) {
 }
 ```
 
-Quando si prova ad applicare un ciclo for o lo spread operator su di un tipo in JavaScript, quello che accade under the hood è l'esecuzione del metodo sotto l'etichetta `Symbol.iterator`. Allo stato attuale:
+### Where
+
+When trying to apply a for loop or spread operator on a type in _JavaScript_, what happens under the hood is the execution of the method under the `Symbol.iterator` label. The current state:
 
 ```js
-typeof object[Symbol.iterator] === 'function' // false
+typeof object[Symbol.iterator] === 'function' // returns false
 ```
 
-E' assolutamente valido aggiungere il metodo direttamente nell'object literal:
+It is absolutely valid to add the method directly in the object literal:
 
 ```js
 const object = {
@@ -40,7 +44,7 @@ const object = {
 }
 ```
 
-Tuttavia questo comporta che il metodo `[Symbol.iterator]` sarebbe enumerabile. Non è il caso. Si risolve facilmente:
+However, this means that the `[Symbol.iterator]` method would be _enumerable_. It's not the case. It is easily solved:
 
 ```js
 function iteratify(obj) {
@@ -58,10 +62,12 @@ function iteratify(obj) {
 }
 ```
 
-ES6 ha standardizzato l'interfaccia per l'Iterator. Si tratta di un metodo che una volta eseguito restituisce un oggetto. Questo deve contenere necessariamente un metodo `next`. Ad ogni esecuzione di quest'ultimo si ottiene un _IteratorResult_, ovvero un oggetto che necessariamente contiene due proprietà specifiche:
+### How
 
-- value - il valore generato per la corrente iterazione
-- done - un booleano rappresentate lo stato dell'iteratore
+ES6 has standardized the interface for the Iterator. It is a method that when executed returns an object. This must necessarily contain a `next` method. At each execution of the latter, an _IteratorResult_ is obtained, that is an object that necessarily contains two specific properties:
+
+- value - the value generated for the current iteration. Can be any type.
+- done - a boolean representing the state of the iterator.
 
 ```js
 function iteratify(obj) {
@@ -93,14 +99,17 @@ function iteratify(obj) {
 }
 ```
 
-In questo caso chiamando `next` si ottiene un IteratorResult il cui value è l'entry all'indice `i` - inoltre avviene `i++`, quindi alla prossima invocazione di `next` si otterrà l'elemento successivo.
+In this case calling `next` gets an _IteratorResult_ whose value is the entry to the index `i` - also `i++` happens, so the next time `next` is called it will return the next entry.
 
-- `function iterator()` viene dopo il `return`. Non è mica **dead code**?
+> `function iterator()` viene dopo il `return`. Non è mica _dead code_?
+> No. [function hoisting](https://github.com/getify/You-Dont-Know-JS/blob/2nd-ed/scope-closures/ch5.md#hoisting-declaration-vs-expression)
 
-  > No. [function hoisting](https://github.com/getify/You-Dont-Know-JS/blob/2nd-ed/scope-closures/ch5.md#hoisting-declaration-vs-expression)
+---
 
-Invocazione di `next`? E quando mai?
-Nel caso in cui deleghi l'iterazione al ciclo `for...of` è l'internal di JavaScript a chiamare ripetutamente next fino a quando viene restituito un IteratorResult il cui `done` sia `true`. Comunque, puoi chiamare "manualmente" `next` come segue:
+## Usage
+
+Invocation of `next`? And when in the world?
+In case you delegate the iteration to the `for ... of` loop, the _JavaScript_ internal calls next repeatedly until an _IteratorResult_ is returned whose `done` is `true`. However, you can "manually" call `next` as follows:
 
 ```js
 const itObject = iteratify({
@@ -117,7 +126,7 @@ it.next() // { value: [ 'baz', 42 ], done: false }
 it.next() // { value: undefined, done: true }
 ```
 
-Sicuramente utile per applicazioni più complesse. Senza però divagare, proviamo il for...of sull'oggetto iterabile:
+Definitely useful for more complex, fine applications. But without digressing, let's stick to the `for...of`:
 
 ```js
 const itObject = iteratify({
@@ -140,16 +149,18 @@ for (let entry of itObject) {
 
 ## Conclusion
 
-Spero che la semplicità dell'esempio abbia funto più da gentile introduzione all'argomento piuttosto che come fonte di sbadiglio.
+I hope the simplicity of the example served more as a gentle introduction to the subject rather than a source of yawning.
 
-Ecco il recap di alcune considerazioni.
+Here is the recap of some considerations.
 
-1. Le funzionalità built-in di JavaScript come il for...of chiamano il metodo sotto l'etichetta `Symbol.iterator`
-2. Rendere non enumerabile il metodo che deve... enumerare
-3. Il metodo `next` può accedere ed interagire con le variabili dichiarate in `iterator` ([Closure](https://github.com/getify/You-Dont-Know-JS/blob/2nd-ed/scope-closures/README.md)) - si possono fare cose molto fighe, non solo tener traccia di un contatore `i` ;)
+1. _JavaScript_ built-in features like `for...of` call the method under the `Symbol.iterator` label
+2. Make the method it is to enumerate... unenumerable
+3. The `next` method can access and interact with the variables declared in the `iterator` ([Closure](https://github.com/getify/You-Dont-Know-JS/blob/2nd-ed/scope-closures/README.md)) - you can do very cool things, not just keep track of an `i` counter ;)
 
 ---
 
-## Correlated
+## Docs and Correlated
 
-Questo post è correlato con [Expanding iteratify with Functional Programming](#) - SOON
+Iterators in detail (MUST READ, TRUST ME): [You Don't Know JS: ES6 & Beyond](https://github.com/getify/You-Dont-Know-JS/blob/1st-ed/es6%20%26%20beyond/ch3.md)
+
+This post is related to [Expanding iteratify with Functional Programming](#) - SOON
