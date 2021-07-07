@@ -99,7 +99,7 @@ function iteratify(obj) {
 
 In this case calling `next` gets an _IteratorResult_ whose value is the entry to the index `i` - also `i++` happens, so the next time `next` is called it will return the next entry.
 
-> `function iterator ()` comes after the `return`. Isn't that _dead code_?
+> `function iterator()` comes after the `return`. Isn't that _dead code_?
 > No. [function hoisting](https://github.com/getify/You-Dont-Know-JS/blob/2nd-ed/scope-closures/ch5.md#hoisting-declaration-vs-expression)
 
 ---
@@ -107,7 +107,7 @@ In this case calling `next` gets an _IteratorResult_ whose value is the entry to
 ## Usage
 
 Invocation of `next`? And when in the world?
-In case you delegate the iteration to the `for ... of` loop, the _JavaScript_ internal calls next repeatedly until an _IteratorResult_ is returned whose `done` is `true`. However, you can "manually" call `next` as follows:
+In case you delegate the iteration to the `for...of` loop, the _JavaScript_ internal calls next repeatedly until an _IteratorResult_ is returned whose `done` is `true`. However, you can "manually" call `next` as follows:
 
 ```js
 const itObject = iteratify({
