@@ -1,4 +1,4 @@
-# Iteratify
+# Iteratify - Make It Iterable
 
 Among the new features brought by the ES6, we find the addition of the primitive type Symbol and the definition of the iterator.
 In this post, we use both to make an **object iterable**. While the usefulness of this functionality is questionable (easily replaceable by the use of `Object.entries` or similar) it will allow us to **focus attention** on the subject.
