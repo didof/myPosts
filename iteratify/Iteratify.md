@@ -81,31 +81,75 @@ function iteratify(obj) {
     let i = 0
 
     return {
-      [Symbol.iterator]() {
-        return this
-      },
-
       next() {
         if (i < entries.length) {
           return { value: entries[i++], done: false }
         }
 
-        return { done: true }
+        return { done: true } // implicit: value: undefined
       },
     }
   }
 }
 ```
 
+In questo caso chiamando `next` si ottiene un IteratorResult il cui value è l'entry all'indice `i` - inoltre avviene `i++`, quindi alla prossima invocazione di `next` si otterrà l'elemento successivo.
+
 - `function iterator()` viene dopo il `return`. Non è mica **dead code**?
-  > No. [function declaration hoisting](link)
+
+  > No. [function hoisting](https://github.com/getify/You-Dont-Know-JS/blob/2nd-ed/scope-closures/ch5.md#hoisting-declaration-vs-expression)
+
+Invocazione di `next`? E quando mai?
+Nel caso in cui deleghi l'iterazione al ciclo `for...of` è l'internal di JavaScript a chiamare ripetutamente next fino a quando viene restituito un IteratorResult il cui `done` sia `true`. Comunque, puoi chiamare "manualmente" `next` come segue:
 
 ```js
-const itObject = iteratify(object)
+const itObject = iteratify({
+  foo: true,
+  bar: 'hello',
+  baz: 42,
+})
 
-typeof itObject[Symbol.iterator] === 'function' // returns true
+const it = itObject[Symbol.iterator]()
+
+it.next() // { value: [ 'foo', true ], done: false }
+it.next() // { value: [ 'bar', 'hello' ], done: false }
+it.next() // { value: [ 'baz', 42 ], done: false }
+it.next() // { value: undefined, done: true }
+```
+
+Sicuramente utile per applicazioni più complesse. Senza però divagare, proviamo il for...of sull'oggetto iterabile:
+
+```js
+const itObject = iteratify({
+  foo: true,
+  bar: 'hello',
+  baz: 42,
+})
+
+typeof itObject[Symbol.iterator] === 'function' // returns true, thus is iterable
 
 for (let entry of itObject) {
   console.log(entry) // each returns relative entry
+  // [ 'foo', true ]
+  // [ 'bar', 'string' ]
+  // [ 'baz', 42 ]
 }
 ```
+
+---
+
+## Conclusion
+
+Spero che la semplicità dell'esempio abbia funto più da gentile introduzione all'argomento piuttosto che come fonte di sbadiglio.
+
+Ecco il recap di alcune considerazioni.
+
+1. Le funzionalità built-in di JavaScript come il for...of chiamano il metodo sotto l'etichetta `Symbol.iterator`
+2. Rendere non enumerabile il metodo che deve... enumerare
+3. Il metodo `next` può accedere ed interagire con le variabili dichiarate in `iterator` ([Closure](https://github.com/getify/You-Dont-Know-JS/blob/2nd-ed/scope-closures/README.md)) - si possono fare cose molto fighe, non solo tener traccia di un contatore `i` ;)
+
+---
+
+## Correlated
+
+Questo post è correlato con [Expanding iteratify with Functional Programming](#) - SOON
