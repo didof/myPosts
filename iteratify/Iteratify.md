@@ -1,7 +1,5 @@
 # Iteratify
 
-## Premise
-
 Among the new features brought by the ES6, we find the addition of the primitive type Symbol and the definition of the iterator.
 In this post, we use both to make an **object iterable**. While the usefulness of this functionality is questionable (easily replaceable by the use of `Object.entries` or similar) it will allow us to **focus attention** on the subject.
 
@@ -101,7 +99,7 @@ function iteratify(obj) {
 
 In this case calling `next` gets an _IteratorResult_ whose value is the entry to the index `i` - also `i++` happens, so the next time `next` is called it will return the next entry.
 
-> `function iterator()` viene dopo il `return`. Non è mica _dead code_?
+> `function iterator ()` comes after the `return`. Isn't that _dead code_?
 > No. [function hoisting](https://github.com/getify/You-Dont-Know-JS/blob/2nd-ed/scope-closures/ch5.md#hoisting-declaration-vs-expression)
 
 ---
