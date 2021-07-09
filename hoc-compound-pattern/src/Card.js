@@ -5,7 +5,6 @@ function Card({ children }) {
 }
 
 Card.Header = Header
-Card.Media = Media
 Card.Body = Body
 
 export default Card
@@ -16,12 +15,6 @@ function Header({ children }) {
       <h4>{children}</h4>
     </header>
   )
-}
-
-function Media({ src, alt }) {
-  if (!alt)
-    throw new Error(`Please, always use an alt attribute. ${src} misses it!`)
-  return <img src={src} alt={alt} />
 }
 
 function Body({ children, more, buy }) {

@@ -6,7 +6,6 @@ function App() {
   return (
     <Card>
       <Card.Header>Riso, Patate e Cozze</Card.Header>
-      {/* <Card.Media src={ricePotatoesCozze} alt='image of the receipe' /> */}
       <Card.Body more buy>
         <h6>Ingredients</h6>
         <ul>
