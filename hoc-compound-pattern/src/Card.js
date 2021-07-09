@@ -1,11 +1,13 @@
 import React from 'react'
-import withAnalytics from './withAnalytics'
+import { withAnalyticsCompound } from './withAnalytics'
 
 function Card({ children }) {
   return <article>{children}</article>
 }
 
-export default withAnalytics(Card, { Header, Body })
+const withAnalytics = withAnalyticsCompound({ Header, Body })
+
+export default withAnalytics(Card)
 
 function Header({ children }) {
   return (

@@ -1,26 +1,28 @@
 # HOC & Compound Pattern Merged
 
-Il Compound Pattern permette di definire per un componente uno o più sotto-componenti. Questi possono essere ripetuti, riallocati. Soprattutto permettono di encapulare la struttura, lo style e logiche relative ad una porzione di UI.
+The **Compound Pattern** allows you to associate one or more sub-components to a component. These can be repeated and reallocated. Above all, they allow you to _encapulate_ the structure, style and logic relating to a portion of the UI.
 
-L'High Order Component è l'estenzione nel contesto React dell'High Order Function. Sostanzialmente è una funzione che wrappa un componente e ne enhance e/o inietta funzionalità aggiuntive.
+The **High Order Component** is the extension in the React context of the _High Order Function_. Basically it is a function that wraps a component and enhances it and/or injects additional functionality.
 
-Hai mai provato ad utilizzare il secondo sul primo? Se sì, ti sarai reso conto che React si lamenterà. Ti dirò di più - ha ragione lui.
+Have you ever tried to use the second over the first? If so, you will have realized that React will complain. I'll tell you more - he's right.
 
 ## Steps
 
-1. Create Compound Component
-2. Create HOC
-3. Capire perché il merge fallisce
-4. Trovare la soluzione
-5. Bonus - Automate the HOC-compound
+1. Create Compound Component ([detail](https://kentcdodds.com/blog/compound-components-with-react-hooks))
+2. Create High Order Component ([detail](https://medium.com/@jrwebdev/react-higher-order-component-patterns-in-typescript-42278f7590fb))
+3. Merging... it fails!
+4. Reasoning to the solution
+5. Abstract away the problem
+
+> If you are already aware of both patterns skip to step 3
 
 ---
 
-Per meglio comprendere la problematica, quindi la soluzione, usiamo del codice. Si tratta di componenti volutamente semplici, proprio perché il focus dell'attenzione deve ricadere su come si incontrano.
+To better understand the problem, therefore the solution, we use some code. These are deliberately simple components, precisely because I hope the focus of attention falls on how they connect rather than on what they do.
 
 ### 1. Create Compound Component
 
-Un componente `Card` da utilizzarsi nel seguente modo:
+A `Card` component to be used in the following way:
 
 ```js
 <Card>
@@ -36,7 +38,7 @@ Un componente `Card` da utilizzarsi nel seguente modo:
 </Card>
 ```
 
-Implementato così:
+Implemented like this:
 
 ```js
 function Card({ children }) {
@@ -53,15 +55,15 @@ function Header({ children }) {
 
 function Body({ children }) { ... }
 
-Card.Header = Header
-Card.Body = Body
+Card.Header = Header        // The magic of Compound Pattern
+Card.Body = Body            // is all here
 
 export default Card
 ```
 
-### Create HOC
+### Create High Order Component (HOC)
 
-Un High Order Component può fare di tutto. Può wrappare un componente con un Provider, un Router, può anche solo aggiungere del colore qua e là o addirittura stravolgerne completamente le props. Per semplicità, il nostro `withAnalytics` si limiterà a stampare in console una specifica prop del componente wrappato.
+A HOC can do it all. It can wrap a component with a Provider, a Router, it can also just add color here and there or even completely distort its props. For simplicity, our `withAnalytics` will simply print a specific prop of the wrapped component to the console.
 
 ```js
 function withAnalytics(Component) {
@@ -76,15 +78,15 @@ function withAnalytics(Component) {
 export default withAnalytics
 ```
 
-E laddove `Card` è utilizzato aggiungiamo:
+And where `Card` is used we add:
 
 ```js
 <Card analytics={{ id: '123', name: 'rpc' }}>
 ```
 
-### 3. Capire perché il merge fallisce
+### 3. Merging... it fails!
 
-Ci sono tutti i pezzi. Manca solo da wrappare `Card` con `withAnalytics`.
+All the pieces are there. We just need to wrap `Card` with` withAnalytics`.
 
 ```js
 export default withAnalytics(Card)
@@ -92,7 +94,7 @@ export default withAnalytics(Card)
 
 And crash! So many errors in console!
 
-Proviamo a rimuovere i sotto-componenti in `Card`
+Let's try to remove the sub-components in `Card`.
 
 ```js
 <Card analytics={{ id: '123', name: 'rpc' }}>
@@ -108,35 +110,38 @@ Proviamo a rimuovere i sotto-componenti in `Card`
 </Card>
 ```
 
-L'errore è andato via. Dunque è qualcosa che ha a che fare con l'assegnazione dei sotto-componenti come proprietà statiche su `Card`.
+The error went away. So it's something to do with assigning sub-components as static properties on `Card`.
 
-Analizziamo l'`export` di `Card`.
-Precedentemente era `export default Card`. Dunque stavamo esportando una funzione, `Card`, alla quale erano associati `Header` e `Body`.
+Let's analyze the `Card` export.
+Previously it was `export default Card`. So we were exporting a function, `Card`, with the associated `Header` and `Body`.
 
-Adesso è `export default withAnalytics(Card)`. Stiamo esportando ciò che la funzione `withAnalytics` restituisce. Cos'è?
+It is now `export default withAnalytics(Card)`. We are exporting what the `withAnalytics` function returns. And what is it about?
 
 ```js
 function withAnalytics(Component) {
   return function WrappedComponent(props) {
     console.log('Send Analytics', JSON.stringify(props.analytics))
+
     return <Component {...props} />
   }
 }
 ```
 
-E' un componente. Non solo - è il componente che abbiamo tra le mani laddove lo importiamo.
+It's a function, `WrappedComponent`, which accepts props... wait a minute, it's a component! Not only that - it is the component we have in our hands where we import it.
 
-Ecco il problema! A causa del HOC, quando usiamo `<Card>` in `App` (o ovunque) non stiamo facendo riferimento a `function Card()` (parte 1), bensì a `funtion WrappedComponent`! Ed è su di esso che dovremmo definire i sotto-componenti!
+Here's the problem! Because of the HOC, where we use `<Card>` we are not referring to `function Card()` (the one defined at step 1), but to `funtion WrappedComponent`!
 
-### 4. Trovare la soluzione
+> It is on it that we should define the sub-components!
 
-Non possiamo fare qualcosa come:
+### 4. Reasoning to the solution
+
+We can't do something like:
 
 ```js
 WrappedComponent.Header = Header
 ```
 
-O meglio: è ciò che ci serve accada, ma deve accadere in modo dinamico. Basta abilitare `withAnalytics` a ricevere da parte del file che lo utilizza un set di sotto-componenti.
+Or rather: it is what we need to happen, but it must happen dynamically. Just enable `withAnalytics` to receive a set of sub-components from the file that uses it.
 
 ```js
 function withAnalytics(Component, compounds) {
@@ -160,14 +165,119 @@ E laddove esportiamo `Card`:
 export default withAnalytics(Card, { Header, Body })
 ```
 
-Dato che `withAnalytics` non sa né quati compounds deve allegare a `WrappedComponent`, né tantomeno il nome, è sufficiente iterare per ognuno di essi e sfruttare la struttura `{ 'nomeComponente': 'componente vero e proprio' }`.
+Since `withAnalytics` does not know how many compounds to attach to the` WrappedComponent`, nor the name, it is sufficient to iterate for each of them and exploit the structure `{'componentname': 'actual component'}`.
 
-> Se non ti torna, è sufficiente printare `name` e `component` all'interno del `forEach`.
+> If that doesn't work, just print the `name` and` component` inside the `forEach`.
+
+Done. Now you can use the HOC on a component built using Compound Pattern.
+
+But, if you feel like it, there is more.
 
 ---
 
-Ecco fatto. Adesso puoi usare l'HOC su di un componente costruito mediante Compound Pattern.
+### 5. Abstract away the problem
 
-### 5. Bonus - Automate the HOC-compound
+Is it possible to abstract away the sub-component assignment so that the body function of any High Order Component is concerned only with its own functionality? **Yes**.
 
-E' possibile astrarre via l'assegnazione dei sotto-componenti in modo che il body di una qualsiasi HOC si concerned solo della propria funzionalità?
+We build a decorator whose purpose is to make _dependencies injection_ of the various compounds. In this way when we build a HOC we don't have to worry about managing the compounds when we want to use it on a component created with compound pattern.
+
+```js
+function decorateHOCWithStaticProps(hoc) {
+  return function getCompounds(compounds) {
+    return function execHOC(Component) {
+      const c = hoc(Component)
+
+      Object.entries(compounds).forEach(([name, component]) => {
+        c[name] = component
+      })
+
+      return c
+    }
+  }
+}
+```
+
+We report `withAnalytics` to deal only with its issues. It no longer handles `compounds`. Rollback!
+
+```js
+function withAnalytics(Component) {
+  return function WrappedComponent(props) {
+    console.log('Send Analytics', JSON.stringify(props.analytics))
+
+    return <Component {...props} />
+  }
+}
+
+export default withAnalytics
+```
+
+> We keep exporting `withAnalytics` as default because it is sufficient as is when we want to apply it on a "Non-Compound Component".
+
+When instead we want to apply it on a _Compound Component_:
+
+```js
+export default withAnalytics
+
+export const withAnalyticsCompound = decorateHOCWithStaticProps(withAnalytics)
+```
+
+> Our HOC, `withAnalytics`, is stored inside `decorateHOCWithStaticProps`. The `withAnalyticsCompound` variable therefore corresponds to the `getCompounds` function.
+
+Where we define and export the Compound Component `Card`:
+
+```js
+import { withAnalyticsCompound } from 'somewhere'
+
+function Card({ children }) { ... }
+
+const withAnalyticsSpecial = withAnalyticsCompound({ Header, Body })
+```
+
+The `withAnalyticsSpecial` variable corresponds to the `execHOC` function.
+
+> Ideally, all this abstraction just serves to be able to call it `withAnalytics` while ignoring the problem. However I opted for the `-Special` suffix to highlight that it is not the "simple" HOC default exported.
+
+```js
+export default withAnalyticsSpecial(Card)
+```
+
+Before being exported, _it is executed_. We make explicit the values ​​passed in the various steps:
+
+```js
+function decorateHOCWithStaticProps(hoc) {
+  // where hoc = withAnalytics
+  return function getCompounds(compounds) {
+    // where compounds = { Header, Body }
+    return function execHOC(Component) {
+      // where Component = Card
+      const c = hoc(Component)
+
+      // wrap Card with withAnalytics but, before returning it,
+      // decorate it:
+      // c.Header = Header
+      // c['Body'] = Body
+      Object.entries(compounds).forEach(([name, component]) => {
+        c[name] = component
+      })
+
+      return c
+    }
+  }
+}
+```
+
+In this way we have abstracted the resolution of the problem, solving it once and for all.
+When you create a HOC and you want to make sure that it can also be used on Compound Components you just need:
+
+1. In addition to the default, also export a version of the HOC processed by `decorateHOCWithStaticProps`
+2. Where you export the Compound Component, import the previous one and invoke it passing the sub-components.
+3. Forget about the problem and export wrapping with the result of the previous one
+
+---
+
+#### Contacts
+
+Hope you find all of this useful. If you feel like it, let's get in touch!
+
+- [Twitter](https://twitter.com/did0f)
+- [Linkedin](https://www.linkedin.com/in/francesco-di-donato-2a9836183/)
