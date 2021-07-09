@@ -1,13 +1,11 @@
 import React from 'react'
+import withBlueBg from './withBlueBg'
 
 function Card({ children }) {
   return <article>{children}</article>
 }
 
-Card.Header = Header
-Card.Body = Body
-
-export default Card
+export default withBlueBg(Card, { Header, Body })
 
 function Header({ children }) {
   return (
@@ -34,17 +32,19 @@ function Body({ children, more, buy }) {
   return (
     <div>
       {children}
-      <ul>
-        {CTAmap.filter((_, index) => buttons[index]).map(
-          ({ label, action }) => {
-            return (
-              <button key={label} onClick={action}>
-                {label}
-              </button>
-            )
-          }
-        )}
-      </ul>
+      <ul>{CTAmap.filter(selectedButtons).map(buildButton)}</ul>
     </div>
   )
+
+  function selectedButtons(_, index) {
+    return buttons[index]
+  }
+
+  function buildButton({ label, action }) {
+    return (
+      <button key={label} onClick={action}>
+        {label}
+      </button>
+    )
+  }
 }
