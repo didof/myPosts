@@ -1,4 +1,4 @@
-# HOC & Compound Pattern Merged
+# Merge High Order Component and Compound Pattern
 
 The **Compound Pattern** allows you to associate one or more sub-components to a component. These can be repeated and reallocated. Above all, they allow you to _encapulate_ the structure, style and logic relating to a portion of the UI.
 
@@ -8,17 +8,19 @@ Have you ever tried to use the second over the first? If so, you will have reali
 
 ## Steps
 
-1. Create Compound Component ([detail](https://kentcdodds.com/blog/compound-components-with-react-hooks))
-2. Create High Order Component ([detail](https://medium.com/@jrwebdev/react-higher-order-component-patterns-in-typescript-42278f7590fb))
-3. Merging... it fails!
-4. Reasoning to the solution
-5. Abstract away the problem
+1. [Create Compound Component](#ch1) ([more](https://kentcdodds.com/blog/compound-components-with-react-hooks))
+2. [Create High Order Component](#ch2) ([more](https://medium.com/@jrwebdev/react-higher-order-component-patterns-in-typescript-42278f7590fb))
+3. [Merging... it fails!](#ch3)
+4. [Reasoning to the solution](#ch4)
+5. [Abstract away the problem](#ch5)
 
 > If you are already aware of both patterns skip to step 3
 
 ---
 
 To better understand the problem, therefore the solution, we use some code. These are deliberately simple components, precisely because I hope the focus of attention falls on how they connect rather than on what they do.
+
+<a name="ch1"></a>
 
 ### 1. Create Compound Component
 
@@ -61,6 +63,10 @@ Card.Body = Body            // is all here
 export default Card
 ```
 
+---
+
+<a name="ch2"></a>
+
 ### Create High Order Component (HOC)
 
 A HOC can do it all. It can wrap a component with a Provider, a Router, it can also just add color here and there or even completely distort its props. For simplicity, our `withAnalytics` will simply print a specific prop of the wrapped component to the console.
@@ -83,6 +89,10 @@ And where `Card` is used we add:
 ```js
 <Card analytics={{ id: '123', name: 'rpc' }}>
 ```
+
+---
+
+<a name="ch3"></a>
 
 ### 3. Merging... it fails!
 
@@ -133,6 +143,10 @@ Here's the problem! Because of the HOC, where we use `<Card>` we are not referri
 
 > It is on it that we should define the sub-components!
 
+---
+
+<a name="ch4"></a>
+
 ### 4. Reasoning to the solution
 
 We can't do something like:
@@ -159,7 +173,7 @@ function withAnalytics(Component, compounds) {
 }
 ```
 
-E laddove esportiamo `Card`:
+And where we export `Card`:
 
 ```js
 export default withAnalytics(Card, { Header, Body })
@@ -174,6 +188,8 @@ Done. Now you can use the HOC on a component built using Compound Pattern.
 But, if you feel like it, there is more.
 
 ---
+
+<a name="ch5"></a>
 
 ### 5. Abstract away the problem
 
