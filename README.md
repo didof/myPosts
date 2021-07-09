@@ -10,4 +10,5 @@ For now, here's a list of some quick posts:
 
 ### ES6
 
-1. [iteratify](https://github.com/didof/myPosts/blob/main/iteratify/Iteratify.md)
+1. Iteratify - A function created to approach the **iterator**, subsequently refined through **Functional Programming** practices
+   1. [Make It Iterable](https://github.com/didof/myPosts/blob/main/iteratify/Iteratify.makeItIterable.md)

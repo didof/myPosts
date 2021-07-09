@@ -21,13 +21,24 @@ function partialRight(fn, ...rargs) {
 }
 
 function iteratify(obj, nextFn) {
+  const copy = Object.assign({}, obj)
+
+  Object.defineProperty(copy, Symbol.iterator, {
+    value: iterator,
+    enumerable: false,
+    writable: true,
+    configurable: true,
+  })
+
+  return copy
+
   function iterator() {
     let i = 0
-    const entries = Object.entries(obj)
+    const entries = Object.entries(copy)
 
     return {
       [Symbol.iterator]() {
-        return this
+        return this // è corretto?
       },
 
       next() {
@@ -40,15 +51,6 @@ function iteratify(obj, nextFn) {
       },
     }
   }
-
-  Object.defineProperty(obj, Symbol.iterator, {
-    value: iterator,
-    enumerable: false,
-    writable: true,
-    configurable: true,
-  })
-
-  return obj
 }
 
 const object = {
@@ -69,7 +71,6 @@ const extractAt1 = extractAtIndex(1)
 const iteratifyKeys = partialRight(iteratify, extractAt0)
 const iteratifyValues = partialRight(iteratify, extractAt1)
 
-const itObjectValues = iteratifyValues(object)
 for (let val of itObjectValues) {
   console.log(val)
 }
@@ -83,3 +84,27 @@ const itObjectDefault = iteratify(object)
 for (let entries of itObjectDefault) {
   console.log(entries)
 }
+
+const itObject = iteratify(object)
+
+let it = itObject[Symbol.iterator]()
+
+console.log(it.next())
+console.log(it.next())
+console.log(it.next())
+console.log(it.next())
+console.log(it.next())
+itObject.test = true
+it = itObject[Symbol.iterator]()
+console.log(it.next())
+console.log(it.next())
+console.log(it.next())
+console.log(it.next())
+console.log(it.next())
+
+// Consideration
+/**
+ *
+ * If I add a prop during the next() calls it is not gonna be iterated over until a brand new iterator is spawned.
+ * Solution (maybe): proxy
+ */
