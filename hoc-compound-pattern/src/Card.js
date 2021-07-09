@@ -1,11 +1,11 @@
 import React from 'react'
-import withBlueBg from './withBlueBg'
+import withAnalytics from './withAnalytics'
 
 function Card({ children }) {
   return <article>{children}</article>
 }
 
-export default withBlueBg(Card, { Header, Body })
+export default withAnalytics(Card, { Header, Body })
 
 function Header({ children }) {
   return (

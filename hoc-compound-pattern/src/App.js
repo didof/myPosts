@@ -4,7 +4,7 @@ import Card from './Card'
 
 function App() {
   return (
-    <Card>
+    <Card analytics={{ id: '123', name: 'rpc' }}>
       <Card.Header>Riso, Patate e Cozze</Card.Header>
       <Card.Body more buy>
         <h6>Ingredients</h6>
