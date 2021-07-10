@@ -199,21 +199,19 @@ We build a decorator whose purpose is to make _dependencies injection_ of the va
 
 ```js
 function decorateHOCWithStaticProps(hoc) {
-  return function getCompounds(compounds) {
-    return function execHOC(Component) {
-      const c = hoc(Component)
+  return function execHOC(Component, compounds) {
+    const c = hoc(Component)
 
-      Object.entries(compounds).forEach(([name, component]) => {
-        c[name] = component
-      })
+    Object.entries(compounds).forEach(([name, component]) => {
+      c[name] = component
+    })
 
-      return c
-    }
+    return c
   }
 }
 ```
 
-We report `withAnalytics` to deal only with its issues. It no longer handles `compounds`. Rollback!
+This will allow us to revert `withAnalytics`. Now it deals only with its issues. It no longer handles `compounds`.
 
 ```js
 function withAnalytics(Component) {
@@ -223,8 +221,6 @@ function withAnalytics(Component) {
     return <Component {...props} />
   }
 }
-
-export default withAnalytics
 ```
 
 > We keep exporting `withAnalytics` as default because it is sufficient as is when we want to apply it on a "Non-Compound Component".
@@ -237,7 +233,7 @@ export default withAnalytics
 export const withAnalyticsCompound = decorateHOCWithStaticProps(withAnalytics)
 ```
 
-> Our HOC, `withAnalytics`, is stored inside `decorateHOCWithStaticProps`. The `withAnalyticsCompound` variable therefore corresponds to the `getCompounds` function.
+> Our HOC, `withAnalytics`, is "stored inside" `decorateHOCWithStaticProps`. The `withAnalyticsCompound` variable therefore corresponds to the `getCompounds` function.
 
 Where we define and export the Compound Component `Card`:
 
@@ -246,38 +242,28 @@ import { withAnalyticsCompound } from 'somewhere'
 
 function Card({ children }) { ... }
 
-const withAnalyticsSpecial = withAnalyticsCompound({ Header, Body })
+export default withAnalyticsCompound(Card, { Header, Body })
 ```
 
-The `withAnalyticsSpecial` variable corresponds to the `execHOC` function.
-
-> Ideally, all this abstraction just serves to be able to call it `withAnalytics` while ignoring the problem. However I opted for the `-Special` suffix to highlight that it is not the "simple" HOC default exported.
-
-```js
-export default withAnalyticsSpecial(Card)
-```
-
-Before being exported, _it is executed_. We make explicit the values ​​passed in the various steps:
+When we will `import Card from '...'` we're actually getting what the function returns. Making the parameters explicit can help us understand.
 
 ```js
 function decorateHOCWithStaticProps(hoc) {
   // where hoc = withAnalytics
-  return function getCompounds(compounds) {
-    // where compounds = { Header, Body }
-    return function execHOC(Component) {
-      // where Component = Card
-      const c = hoc(Component)
+  return function execHOC(Component, compounds) {
+    // where Component = Card
+    // where compounds = { 'Header': Header, 'Body': Body }
 
-      // wrap Card with withAnalytics but, before returning it,
-      // decorate it:
-      // c.Header = Header
-      // c['Body'] = Body
-      Object.entries(compounds).forEach(([name, component]) => {
-        c[name] = component
-      })
+    // wrap Card with withAnalytics but, before returning it...
+    const c = hoc(Component)
 
-      return c
-    }
+    // c['Header'] = Header
+    // c['Body'] = Body
+    Object.entries(compounds).forEach(([name, component]) => {
+      c[name] = component
+    })
+
+    return c
   }
 }
 ```
@@ -286,8 +272,8 @@ In this way we have abstracted the resolution of the problem, solving it once an
 When you create a HOC and you want to make sure that it can also be used on Compound Components you just need:
 
 1. In addition to the default, also export a version of the HOC processed by `decorateHOCWithStaticProps`
-2. Where you export the Compound Component, import the previous one and invoke it passing the sub-components.
-3. Forget about the problem and export wrapping with the result of the previous one
+2. Where you export the Compound Component, import the processed version of your HOC.
+3. Forget about the problem: use it as if it were an ordinary HOC, but pass the sub-components to it as a second argument.
 
 ---
 

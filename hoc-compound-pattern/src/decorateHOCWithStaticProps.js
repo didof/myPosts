@@ -1,14 +1,12 @@
 function decorateHOCWithStaticProps(hoc) {
-  return function getCompounds(compounds) {
-    return function execHOC(Component) {
-      const c = hoc(Component)
+  return function execHOC(Component, compounds) {
+    const c = hoc(Component)
 
-      Object.entries(compounds).forEach(([name, component]) => {
-        c[name] = component
-      })
+    Object.entries(compounds).forEach(([name, component]) => {
+      c[name] = component
+    })
 
-      return c
-    }
+    return c
   }
 }
 

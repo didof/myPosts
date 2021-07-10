@@ -5,9 +5,7 @@ function Card({ children }) {
   return <article>{children}</article>
 }
 
-const withAnalytics = withAnalyticsCompound({ Header, Body })
-
-export default withAnalytics(Card)
+export default withAnalyticsCompound(Card, { Header, Body })
 
 function Header({ children }) {
   return (
